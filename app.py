@@ -71,13 +71,13 @@ def create_app():
         if input_song:
             doc = [df_train.iloc[input_song].values]
 
-            # Query Using K-Nearest Neighbors
-            __, neigh_index = knn_loader.kneighbors(doc)
+        # Query Using K-Nearest Neighbors
+        __, neigh_index = knn_loader.kneighbors(doc)
 
-            df_viz = df_train.iloc[neigh_index[0][:4]]
-            # Drop age columns as unnecessary for visualization
-            df_viz = df_viz[df_viz.columns.drop(list(df_viz.filter(regex='age')))]
-            df_viz_transposed = df_viz.transpose().reset_index()
+        df_viz = df_train.iloc[neigh_index[0][:4]]
+        # Drop age columns as unnecessary for visualization
+        df_viz = df_viz[df_viz.columns.drop(list(df_viz.filter(regex='age')))]
+        df_viz_transposed = df_viz.transpose().reset_index()
 
         df_t1 = pd.DataFrame(dict(
             r=df_viz_transposed.iloc[:, 1],
