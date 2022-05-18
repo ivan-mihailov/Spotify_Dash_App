@@ -1,2 +1,2 @@
 # spotify-song-rec
-Recommendation App (static) for Spotify Songs with Viz
+Plotly Dash Recommendation App (static) for Spotify Songs with Radar Vizualizations
