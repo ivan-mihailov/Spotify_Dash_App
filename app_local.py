@@ -1,9 +1,8 @@
 import dash
 from dash import dcc
 from dash import html
-import sklearn
 import joblib
-from zipfile import ZipFile
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -12,16 +11,10 @@ from dash.dependencies import Input, Output
 """Create and configure an instance of the Dash application."""
 
 # Load training dataframe to get wrangled songs
-file_train = 'data/df_train.zip'
-with ZipFile(file_train, 'r') as zip:
-    zip.extractall()
-df_train = pd.read_csv('df_train.csv')
+df_train = pd.read_csv('data/df_train.zip', compression='zip')
 
 # Load unwrangled dataset to match the song.
-file_rec_lookup = 'data/df_rec_lookup.zip'
-with ZipFile(file_rec_lookup, 'r') as zip:
-    zip.extractall()
-df_rec_lookup = pd.read_csv('df_rec_lookup.csv')
+# df_rec_lookup = pd.read_csv('data/df_rec_lookup.zip', compression='zip')
 
 # Load pickled model and recommendations lookup dataframe
 knn_loader = joblib.load('ml/knn_model.joblib')
@@ -40,6 +33,15 @@ def style_c():
     return layout_style
 
 
+# def blank_fig():
+#     fig = go.Figure(go.Scatter(x=[], y=[]))
+#     fig.update_layout(template=None)
+#     fig.update_xaxes(showgrid=False, showticklabels=False, zeroline=False)
+#     fig.update_yaxes(showgrid=False, showticklabels=False, zeroline=False)
+#
+#     return fig
+
+
 app.layout = html.Div([
     html.Img(src=logo_link, style={'margin': '30px 0px 0px 0px'}),
     html.H1('Spotify Song Recommendation App'),
@@ -52,8 +54,9 @@ app.layout = html.Div([
                             ' (from 0 to 1,126,175)'),
                     html.Br(),
                     dcc.Input(id='user_song', type='number', min=0, max=1126175,
-                              placeholder='Enter the Song Number',
-                              style={'width': '300px', 'height': '30px'}),
+                              placeholder='Enter the Song Number', step=1,
+                              debounce=True, style={'width': '300px',
+                                                    'height': '30px'}),
                 ],
                 style={'width': '350px', 'height': '650px', 'display': 'inline-block',
                        'vertical-align': 'top', 'border': '1px solid black',
@@ -71,7 +74,11 @@ app.layout = html.Div([
     Input(component_id='user_song', component_property='value'))
 def update_plot(input_song):
     if input_song:
-        doc = [df_train.iloc[input_song].values]
+        doc = df_train.iloc[input_song].values.reshape(1, -1)
+        doc_1 = df_train.iloc[input_song].values.reshape(1, -1)
+    print(doc.flags)
+    print(doc_1.flags)
+    print(doc_1.shape)
 
     # Query Using K-Nearest Neighbors
     __, neigh_index = knn_loader.kneighbors(doc)
