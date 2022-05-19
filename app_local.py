@@ -50,26 +50,39 @@ app.layout = html.Div([
                     html.H2('Song Selector', style=style_c()),
                     html.H3(
                         'Select the Song for which You Want a Recommendation'
-                        ' (from 0 to 1,126,175)'),
+                        ' (from 0 to 1,126,175)',
+                    ),
                     html.Br(),
                     dcc.Input(
-                        id='user_song', type='number', min=0,
-                        max=1126175, placeholder='Enter the Song Number',
-                        step=1, value='0',
-                        debounce=True, style={'width': '300px',
-                                              'height': '30px'}),
+                        id='user_song',
+                        type='number',
+                        min=0,
+                        max=1126175,
+                        placeholder='Enter the Song Number',
+                        step=1,
+                        value='0',
+                        debounce=True,
+                        style={'width': '300px', 'height': '30px'}),
                 ],
-                style={'width': '350px', 'height': '650px',
-                       'display': 'inline-block',
-                       'verticalAlign': 'top', 'border': '1px solid black',
-                       'padding': '20px'}),
-            html.Div(children=[
-                dcc.Graph(id='my_graph'),
-            ],
-                style={'width': '700px', 'height': '650px',
-                       'display': 'inline-block'}),
-        ]), ],
-    style={'textAlign': 'center', 'display': 'inline-block', 'width': '100%'})
+                style={
+                    'width': '350px',
+                    'height': '650px',
+                    'display': 'inline-block',
+                    'verticalAlign': 'top',
+                    'border': '1px solid black',
+                    'padding': '20px',
+                }),
+            html.Div(
+                children=[dcc.Graph(id='my_graph')],
+                style={
+                    'width': '700px',
+                    'height': '650px',
+                    'display': 'inline-block',
+                },
+            ),
+        ],
+    ),
+], style={'textAlign': 'center', 'display': 'inline-block', 'width': '100%'})
 
 
 @app.callback(
