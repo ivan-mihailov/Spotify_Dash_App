@@ -5,7 +5,6 @@ import joblib
 from zipfile import ZipFile
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 
 
@@ -47,29 +46,36 @@ def create_app():
                 html.Div(
                     children=[
                         html.H2('Song Selector', style=style_c()),
-                        html.H3('Select the Song for which You Want a '
-                                'Recommendation (from 0 to 1,126,175)'),
+                        html.H3(
+                            'Select the Song for which You Want a Recommendation'
+                            ' (from 0 to 1,126,175)'),
                         html.Br(),
-                        dcc.Input(id='user_song', type='number',
-                                  min=0, max=1126175, placeholder='Enter the Song Number',
-                                  style={'width': '300px', 'height': '30px'}),
+                        dcc.Input(
+                            id='user_song', type='number', min=0,
+                            max=1126175, placeholder='Enter the Song Number',
+                            step=1, value='0',
+                            debounce=True, style={'width': '300px',
+                                                  'height': '30px'}),
                     ],
-                    style={'width': '350px', 'height': '650px', 'display': 'inline-block',
-                           'vertical-align': 'top', 'border': '1px solid black',
+                    style={'width': '350px', 'height': '650px',
+                           'display': 'inline-block',
+                           'verticalAlign': 'top', 'border': '1px solid black',
                            'padding': '20px'}),
                 html.Div(children=[
                     dcc.Graph(id='my_graph'),
                 ],
-                    style={'width': '700px', 'height': '650px', 'display': 'inline-block'}),
+                    style={'width': '700px', 'height': '650px',
+                           'display': 'inline-block'}),
             ]), ],
-        style={'text-align': 'center', 'display': 'inline-block', 'width': '100%'})
+        style={'textAlign': 'center', 'display': 'inline-block',
+               'width': '100%'})
 
     @app.callback(
         Output(component_id='my_graph', component_property='figure'),
         Input(component_id='user_song', component_property='value'))
     def update_plot(input_song):
-        if input_song:
-            doc = [df_train.iloc[input_song].values]
+        # if input_song:
+        doc = df_train.iloc[[input_song]]
 
         # Query Using K-Nearest Neighbors
         __, neigh_index = knn_loader.kneighbors(doc)
