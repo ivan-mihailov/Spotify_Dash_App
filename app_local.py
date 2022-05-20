@@ -1,9 +1,11 @@
 import dash
 from dash import dcc
 from dash import html
+import inflect
 import joblib
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 
 """Create and configure an instance of the Dash application."""
@@ -12,36 +14,96 @@ from dash.dependencies import Input, Output
 df_train = pd.read_csv('data/df_train.zip', compression='zip')
 
 # Load unwrangled dataset to match the song.
-# df_rec_lookup = pd.read_csv('data/df_rec_lookup.zip', compression='zip')
+df_rec_lookup = pd.read_csv('data/df_rec_lookup.zip', compression='zip')
 
 # Load pickled model and recommendations lookup dataframe
 knn_loader = joblib.load('ml/knn_model.joblib')
 
-logo_link = 'https://assets.datacamp.com/production/repositories/5893/datasets/' \
-            '2bac9433b0e904735feefa26ca913fba187c0d55/e_com_logo.png'
+logo_link = 'assets/Spotify_Logo_RGB_Green-768x231.png'
 
 # Create the dash app
 app = dash.Dash()
 
 
-# Create a function to add styling
+# Function to add styling
 def style_c():
     layout_style = {'display': 'inline-block', 'margin': '0 auto',
                     'padding': '20px'}
     return layout_style
 
 
-# def blank_fig():
-#     fig = go.Figure(go.Scatter(x=[], y=[]))
-#     fig.update_layout(template=None)
-#     fig.update_xaxes(showgrid=False, showticklabels=False, zeroline=False)
-#     fig.update_yaxes(showgrid=False, showticklabels=False, zeroline=False)
-#
-#     return fig
+# Function to generate radar graph for song selected by user
+def user_song_fig(df, i):
+    df_user_song = pd.DataFrame(dict(r=df.iloc[:, i], theta=df.iloc[:, 0]))
+    user_song_input = df.columns[i]
+    user_song_name = df_rec_lookup.loc[user_song_input, 'name']
+    user_song_artist = df_rec_lookup.loc[user_song_input, 'artists']. \
+        replace("'", "").strip("[]")
+    fig_user_song = go.Figure()
+    fig_user_song.add_trace(go.Scatterpolar(r=df.iloc[:, i],
+                                            theta=df.iloc[:, 0],
+                                            fill='toself'))
+    fig_user_song.update_layout(polar=dict(radialaxis=dict(visible=True,
+                                                           range=[0, 1])),
+                                title={'text': f'You have selected <br>'
+                                               f'{user_song_name} <br> by '
+                                               f'{user_song_artist}',
+                                       'xanchor': 'center', 'yanchor': 'top',
+                                       'y': 0.95, 'x': 0.5}, showlegend=False)
+    return fig_user_song
+
+
+# Function to generate overlay radar graph for songs recommended by model
+def rec_song_fig(df, i):
+    # Generate song and artist names
+    rec_song_i_input = df.columns[i]
+    rec_song_i_name = df_rec_lookup.loc[rec_song_i_input, 'name']
+    rec_song_i_artist = df_rec_lookup.loc[rec_song_i_input, 'artists']. \
+        replace("'", "").strip("[]")
+    p = inflect.engine()
+
+    fig_rec_song_i = go.Figure()
+    # Generate radar graph for the user selected song
+    fig_rec_song_i.add_trace(go.Scatterpolar(
+        r=df.iloc[:, 1],
+        theta=df.iloc[:, 0],
+        fill='toself',
+        name='User Selected Song'
+    ))
+    # Generate the overlay radar graph for each of the recommended songs
+    fig_rec_song_i.add_trace(go.Scatterpolar(
+        r=df.iloc[:, i],
+        theta=df.iloc[:, 0],
+        fill='toself',
+        name=f'{p.ordinal(i - 1)} Recommended Song'
+    ))
+    # Generate graph title and legend
+    fig_rec_song_i.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 1]
+            )),
+        title={'text': f'Your {p.ordinal(i - 1)} recommended song is <br>'
+                       f'{rec_song_i_name} <br> by {rec_song_i_artist}',
+               'xanchor': 'center', 'yanchor': 'top', 'y': 0.95, 'x': 0.5},
+        showlegend=True
+    )
+    return fig_rec_song_i
+
+player_base_path = "https://open.spotify.com/embed/track/"
+# Function to generate an embedded Spotify Player
+# def spotify_embedder(song_id):
+#     html_string = "https://open.spotify.com/embed/track/" + song_id
+#     return html_string
 
 
 app.layout = html.Div([
-    html.Img(src=logo_link, style={'margin': '30px 0px 0px 0px'}),
+    html.Img(src=logo_link, style={
+        'width': '25%',
+        'height': '25%',
+        'margin': '30px 0px 0px 0px'
+    }),
     html.H1('Spotify Song Recommendation App'),
     html.Div(
         children=[
@@ -60,20 +122,34 @@ app.layout = html.Div([
                         max=1126175,
                         placeholder='Enter the Song Number',
                         step=1,
-                        value='0',
+                        value=0,
                         debounce=True,
                         style={'width': '300px', 'height': '30px'}),
                 ],
                 style={
                     'width': '350px',
-                    'height': '650px',
+                    'height': '350px',
                     'display': 'inline-block',
                     'verticalAlign': 'top',
                     'border': '1px solid black',
                     'padding': '20px',
                 }),
             html.Div(
-                children=[dcc.Graph(id='my_graph')],
+                children=[
+                    dcc.Graph(
+                        id='user_song_graph'),
+                    html.Audio(
+                        id='user_song_player',
+                        controls=True,
+                        src=player_base_path,
+                        autoPlay=False),
+                    dcc.Graph(
+                        id='rec_song_1_graph'),
+                    dcc.Graph(
+                        id='rec_song_2_graph'),
+                    dcc.Graph(
+                        id='rec_song_3_graph')
+                ],
                 style={
                     'width': '700px',
                     'height': '650px',
@@ -86,29 +162,39 @@ app.layout = html.Div([
 
 
 @app.callback(
-    Output(component_id='my_graph', component_property='figure'),
+    Output(component_id='user_song_graph', component_property='figure'),
+    Output(component_id='user_song_player', component_property='src'),
+    Output(component_id='rec_song_1_graph', component_property='figure'),
+    Output(component_id='rec_song_2_graph', component_property='figure'),
+    Output(component_id='rec_song_3_graph', component_property='figure'),
     Input(component_id='user_song', component_property='value'))
 def update_plot(input_song):
     doc = df_train.iloc[[input_song]]
-    doc_1 = df_train.iloc[[input_song]]
-    print(doc.flags)
-    print(doc_1.flags)
-    print(doc_1.shape)
 
-    # Query Using K-Nearest Neighbors
+    # Query Using K-Nearest Neighbors Model
     __, neigh_index = knn_loader.kneighbors(doc)
 
+    # Generate dataframe for visualizations
     df_viz = df_train.iloc[neigh_index[0][:4]]
     # Drop age columns as unnecessary for visualization
     df_viz = df_viz[df_viz.columns.drop(list(df_viz.filter(regex='age')))]
+    # Transpose dataframe for use in graph generating function
     df_viz_transposed = df_viz.transpose().reset_index()
 
-    df_t1 = pd.DataFrame(dict(r=df_viz_transposed.iloc[:, 1],
-                              theta=df_viz_transposed.iloc[:, 0]))
-    fig = px.line_polar(df_t1, r='r', theta='theta', line_close=True)
-    fig.update_traces(fill='toself')
+    song_id = []
+    for i in neigh_index[0][1:4]:
+        song_id.append(df_rec_lookup['id'][i])
 
-    return fig
+    # Generate graph for song selected by user
+    fig_user_song = user_song_fig(df_viz_transposed, 1)
+    src = player_base_path + song_id[0]
+
+    # Generate graphs for songs recommended by model
+    fig_rec_song_1 = rec_song_fig(df_viz_transposed, 2)
+    fig_rec_song_2 = rec_song_fig(df_viz_transposed, 3)
+    fig_rec_song_3 = rec_song_fig(df_viz_transposed, 4)
+
+    return fig_user_song, src, fig_rec_song_1, fig_rec_song_2, fig_rec_song_3
 
 
 if __name__ == '__main__':
