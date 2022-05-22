@@ -138,11 +138,9 @@ app.layout = html.Div([
                 children=[
                     dcc.Graph(
                         id='user_song_graph'),
-                    html.Audio(
+                    dcc.Markdown(
                         id='user_song_player',
-                        controls=True,
-                        src=player_base_path,
-                        autoPlay=False),
+                        dangerously_allow_html=True),
                     dcc.Graph(
                         id='rec_song_1_graph'),
                     dcc.Graph(
@@ -163,7 +161,7 @@ app.layout = html.Div([
 
 @app.callback(
     Output(component_id='user_song_graph', component_property='figure'),
-    Output(component_id='user_song_player', component_property='src'),
+    Output(component_id='user_song_player', component_property='children'),
     Output(component_id='rec_song_1_graph', component_property='figure'),
     Output(component_id='rec_song_2_graph', component_property='figure'),
     Output(component_id='rec_song_3_graph', component_property='figure'),
@@ -182,19 +180,21 @@ def update_plot(input_song):
     df_viz_transposed = df_viz.transpose().reset_index()
 
     song_id = []
-    for i in neigh_index[0][1:4]:
+    for i in neigh_index[0][0:4]:
         song_id.append(df_rec_lookup['id'][i])
 
     # Generate graph for song selected by user
     fig_user_song = user_song_fig(df_viz_transposed, 1)
-    src = player_base_path + song_id[0]
+    children = '''<iframe src="https://open.spotify.com/embed/track/''' + song_id[0] + '''"
+        width="230" height="320" frameborder="0" 
+        allowtransparency="true" allow="encrypted-media"></iframe>'''
 
     # Generate graphs for songs recommended by model
     fig_rec_song_1 = rec_song_fig(df_viz_transposed, 2)
     fig_rec_song_2 = rec_song_fig(df_viz_transposed, 3)
     fig_rec_song_3 = rec_song_fig(df_viz_transposed, 4)
 
-    return fig_user_song, src, fig_rec_song_1, fig_rec_song_2, fig_rec_song_3
+    return fig_user_song, children, fig_rec_song_1, fig_rec_song_2, fig_rec_song_3
 
 
 if __name__ == '__main__':
