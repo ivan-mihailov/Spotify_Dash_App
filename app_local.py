@@ -4,7 +4,6 @@ from dash import html
 import inflect
 import joblib
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 
@@ -91,6 +90,7 @@ def rec_song_fig(df, i):
     )
     return fig_rec_song_i
 
+
 player_base_path = "https://open.spotify.com/embed/track/"
 # Function to generate an embedded Spotify Player
 # def spotify_embedder(song_id):
@@ -143,10 +143,19 @@ app.layout = html.Div([
                         dangerously_allow_html=True),
                     dcc.Graph(
                         id='rec_song_1_graph'),
+                    dcc.Markdown(
+                        id='rec_song_1_player',
+                        dangerously_allow_html=True),
                     dcc.Graph(
                         id='rec_song_2_graph'),
+                    dcc.Markdown(
+                        id='rec_song_2_player',
+                        dangerously_allow_html=True),
                     dcc.Graph(
-                        id='rec_song_3_graph')
+                        id='rec_song_3_graph'),
+                    dcc.Markdown(
+                        id='rec_song_3_player',
+                        dangerously_allow_html=True)
                 ],
                 style={
                     'width': '700px',
@@ -163,8 +172,11 @@ app.layout = html.Div([
     Output(component_id='user_song_graph', component_property='figure'),
     Output(component_id='user_song_player', component_property='children'),
     Output(component_id='rec_song_1_graph', component_property='figure'),
+    Output(component_id='rec_song_1_player', component_property='children'),
     Output(component_id='rec_song_2_graph', component_property='figure'),
+    Output(component_id='rec_song_2_player', component_property='children'),
     Output(component_id='rec_song_3_graph', component_property='figure'),
+    Output(component_id='rec_song_3_player', component_property='children'),
     Input(component_id='user_song', component_property='value'))
 def update_plot(input_song):
     doc = df_train.iloc[[input_song]]
@@ -183,18 +195,30 @@ def update_plot(input_song):
     for i in neigh_index[0][0:4]:
         song_id.append(df_rec_lookup['id'][i])
 
-    # Generate graph for song selected by user
+    # Generate graph and mini-Spotify-player for song selected by user
     fig_user_song = user_song_fig(df_viz_transposed, 1)
-    children = '''<iframe src="https://open.spotify.com/embed/track/''' + song_id[0] + '''"
-        width="230" height="320" frameborder="0" 
-        allowtransparency="true" allow="encrypted-media"></iframe>'''
+    user_song = '''<iframe src="https://open.spotify.com/embed/track/''' + \
+                song_id[0] + '''" width="230" height="320" frameborder="0" 
+                allowtransparency="true" allow="encrypted-media"></iframe>'''
 
-    # Generate graphs for songs recommended by model
+    # Generate graphs and mini-Spotify-players for songs recommended by model
     fig_rec_song_1 = rec_song_fig(df_viz_transposed, 2)
-    fig_rec_song_2 = rec_song_fig(df_viz_transposed, 3)
-    fig_rec_song_3 = rec_song_fig(df_viz_transposed, 4)
+    rec_song_1 = '''<iframe src="https://open.spotify.com/embed/track/''' + \
+                 song_id[1] + '''" width="230" height="320" frameborder="0"
+                 allowtransparency="true" allow="encrypted-media"></iframe>'''
 
-    return fig_user_song, children, fig_rec_song_1, fig_rec_song_2, fig_rec_song_3
+    fig_rec_song_2 = rec_song_fig(df_viz_transposed, 3)
+    rec_song_2 = '''<iframe src="https://open.spotify.com/embed/track/''' + \
+                 song_id[2] + '''" width="230" height="320" frameborder="0" 
+                 allowtransparency="true" allow="encrypted-media"></iframe>'''
+
+    fig_rec_song_3 = rec_song_fig(df_viz_transposed, 4)
+    rec_song_3 = '''<iframe src="https://open.spotify.com/embed/track/''' + \
+                 song_id[3] + '''" width="230" height="320" frameborder="0" 
+                 allowtransparency="true" allow="encrypted-media"></iframe>'''
+
+    return fig_user_song, user_song, fig_rec_song_1, rec_song_1, fig_rec_song_2, \
+           rec_song_2, fig_rec_song_3, rec_song_3
 
 
 if __name__ == '__main__':
