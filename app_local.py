@@ -33,7 +33,7 @@ def style_c():
 
 # Function to generate radar graph for song selected by user
 def user_song_fig(df, i):
-    df_user_song = pd.DataFrame(dict(r=df.iloc[:, i], theta=df.iloc[:, 0]))
+    # Generate user song and artist names
     user_song_input = df.columns[i]
     user_song_name = df_rec_lookup.loc[user_song_input, 'name']
     user_song_artist = df_rec_lookup.loc[user_song_input, 'artists']. \
@@ -54,7 +54,7 @@ def user_song_fig(df, i):
 
 # Function to generate overlay radar graph for songs recommended by model
 def rec_song_fig(df, i):
-    # Generate song and artist names
+    # Generate recommended songs and artists names
     rec_song_i_input = df.columns[i]
     rec_song_i_name = df_rec_lookup.loc[rec_song_i_input, 'name']
     rec_song_i_artist = df_rec_lookup.loc[rec_song_i_input, 'artists']. \
@@ -92,19 +92,20 @@ def rec_song_fig(df, i):
 
 
 player_base_path = "https://open.spotify.com/embed/track/"
-# Function to generate an embedded Spotify Player
-# def spotify_embedder(song_id):
-#     html_string = "https://open.spotify.com/embed/track/" + song_id
-#     return html_string
-
 
 app.layout = html.Div([
-    html.Img(src=logo_link, style={
-        'width': '25%',
-        'height': '25%',
-        'margin': '30px 0px 0px 0px'
-    }),
-    html.H1('Spotify Song Recommendation App'),
+    html.Div(
+        children=[
+            html.Img(src=logo_link, style={
+                'width': '25%',
+                'height': '25%',
+                'margin': '30px 0px 0px 30px'
+            }),
+            html.H1('Spotify Song Recommendation App'),
+        ],
+        style={'textAlign': 'center',
+               'display': 'inline-block',
+               'width': '100%'}),
     html.Div(
         children=[
             html.Div(
@@ -127,45 +128,108 @@ app.layout = html.Div([
                         style={'width': '300px', 'height': '30px'}),
                 ],
                 style={
-                    'width': '350px',
-                    'height': '350px',
+                    'width': '400px',
+                    'height': '400px',
                     'display': 'inline-block',
                     'verticalAlign': 'top',
+                    'textAlign': 'center',
                     'border': '1px solid black',
                     'padding': '20px',
                 }),
             html.Div(
                 children=[
                     dcc.Graph(
-                        id='user_song_graph'),
+                        id='user_song_graph')
+                ],
+                style={'display': 'inline-block',
+                       'width': '33%',
+                       'padding': 'auto'
+                       }),
+            html.Div(
+                children=[
                     dcc.Markdown(
                         id='user_song_player',
-                        dangerously_allow_html=True),
+                        dangerously_allow_html=True)
+                ], style={'display': 'inline-block',
+                          'verticalAlign': 'top',
+                          'width': '33%',
+                          'padding': '100px auto',
+                          'margin': '100 px auto',
+                          }),
+        ]),
+    html.Div(
+        children=[
+            html.Div(
+                children=[
                     dcc.Graph(
-                        id='rec_song_1_graph'),
+                        id='rec_song_1_graph')
+                ],
+                style={'display': 'inline-block',
+                       'width': '50%',
+                       'padding': 'auto'
+                       }),
+            html.Div(
+                children=[
                     dcc.Markdown(
                         id='rec_song_1_player',
-                        dangerously_allow_html=True),
+                        dangerously_allow_html=True)
+                ],
+                style={'display': 'inline-block',
+                       'verticalAlign': 'top',
+                       'width': '50%',
+                       'padding': '100px auto',
+                       'margin': '100 px auto',
+                       })
+        ]),
+    html.Div(
+        children=[
+            html.Div(
+                children=[
                     dcc.Graph(
-                        id='rec_song_2_graph'),
+                        id='rec_song_2_graph')
+                ],
+                style={'display': 'inline-block',
+                       'width': '50%',
+                       'padding': 'auto'
+                       }),
+            html.Div(
+                children=[
                     dcc.Markdown(
                         id='rec_song_2_player',
-                        dangerously_allow_html=True),
+                        dangerously_allow_html=True)
+                ],
+                style={'display': 'inline-block',
+                       'verticalAlign': 'top',
+                       'width': '50%',
+                       'padding': '100px auto',
+                       'margin': '100 px auto',
+                       })
+        ]),
+    html.Div(
+        children=[
+            html.Div(
+                children=[
                     dcc.Graph(
-                        id='rec_song_3_graph'),
+                        id='rec_song_3_graph')
+                ],
+                style={'display': 'inline-block',
+                       'width': '50%',
+                       'padding': 'auto'
+                       }),
+            html.Div(
+                children=[
                     dcc.Markdown(
                         id='rec_song_3_player',
                         dangerously_allow_html=True)
                 ],
-                style={
-                    'width': '700px',
-                    'height': '650px',
-                    'display': 'inline-block',
-                },
-            ),
-        ],
-    ),
-], style={'textAlign': 'center', 'display': 'inline-block', 'width': '100%'})
+                style={'display': 'inline-block',
+                       'verticalAlign': 'top',
+                       'width': '50%',
+                       'padding': '100px auto',
+                       'margin': '100 px auto',
+                       })
+        ]),
+    ])
 
 
 @app.callback(
@@ -198,23 +262,23 @@ def update_plot(input_song):
     # Generate graph and mini-Spotify-player for song selected by user
     fig_user_song = user_song_fig(df_viz_transposed, 1)
     user_song = '''<iframe src="https://open.spotify.com/embed/track/''' + \
-                song_id[0] + '''" width="230" height="320" frameborder="0" 
+                song_id[0] + '''" width="450" height="450" frameborder="0" 
                 allowtransparency="true" allow="encrypted-media"></iframe>'''
 
     # Generate graphs and mini-Spotify-players for songs recommended by model
     fig_rec_song_1 = rec_song_fig(df_viz_transposed, 2)
     rec_song_1 = '''<iframe src="https://open.spotify.com/embed/track/''' + \
-                 song_id[1] + '''" width="230" height="320" frameborder="0"
+                 song_id[1] + '''" width="450" height="450" frameborder="0"
                  allowtransparency="true" allow="encrypted-media"></iframe>'''
 
     fig_rec_song_2 = rec_song_fig(df_viz_transposed, 3)
     rec_song_2 = '''<iframe src="https://open.spotify.com/embed/track/''' + \
-                 song_id[2] + '''" width="230" height="320" frameborder="0" 
+                 song_id[2] + '''" width="450" height="450" frameborder="0" 
                  allowtransparency="true" allow="encrypted-media"></iframe>'''
 
     fig_rec_song_3 = rec_song_fig(df_viz_transposed, 4)
     rec_song_3 = '''<iframe src="https://open.spotify.com/embed/track/''' + \
-                 song_id[3] + '''" width="230" height="320" frameborder="0" 
+                 song_id[3] + '''" width="450" height="450" frameborder="0" 
                  allowtransparency="true" allow="encrypted-media"></iframe>'''
 
     return fig_user_song, user_song, fig_rec_song_1, rec_song_1, fig_rec_song_2, \
