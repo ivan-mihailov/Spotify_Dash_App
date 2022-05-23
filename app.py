@@ -7,6 +7,7 @@ import inflect
 import joblib
 import pandas as pd
 import plotly.graph_objects as go
+from whitenoise import WhiteNoise
 
 """Create and configure an instance of the Dash application."""
 
@@ -19,11 +20,12 @@ df_rec_lookup = pd.read_csv('data/df_rec_lookup.zip', compression='zip')
 # Load pickled model and recommendations lookup dataframe
 knn_loader = joblib.load('ml/knn_model.joblib')
 
-logo_link = 'assets/Spotify_Logo_RGB_Green-768x231.png'
+logo_link = 'Spotify_Logo_RGB_Green-768x231.png'
 
 # Create the dash app
 app = dash.Dash(__name__)
 server = app.server
+server.wsgi_app = WhiteNoise(server.wsgi_app, root=‘static/’)
 app.title = "Spotify Recommendation App"
 
 
