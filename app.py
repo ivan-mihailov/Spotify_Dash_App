@@ -25,7 +25,7 @@ logo_link = 'Spotify_Logo_RGB_Green-768x231.png'
 # Create the dash app
 app = dash.Dash(__name__)
 server = app.server
-server.wsgi_app = WhiteNoise(server.wsgi_app, root=‘static/’)
+server.wsgi_app = WhiteNoise(server.wsgi_app, root='static/')
 app.title = "Spotify Recommendation App"
 
 
